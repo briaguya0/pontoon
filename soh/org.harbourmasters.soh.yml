@@ -11,18 +11,26 @@ finish-args:
   - --device=input
   - --socket=pulseaudio
   - --share=network
-  - --filesystem=home:ro
+  - --talk-name=org.freedesktop.portal.Desktop
 
 cleanup:
   - /include
   - /share/man
   - /share/doc
   - /share/pkgconfig
+  - /share/cmake
+  - /share/vim
   - /lib/pkgconfig
   - /lib/cmake
   - '*.a'
   - '*.la'
   - /bin/lsb_release
+  # SoH's CMake INSTALL rules place these at /app root; our post-install
+  # puts the canonical copies under /app/lib/soh. Drop the duplicates.
+  - /soh.elf
+  - /soh.o2r
+  - /gamecontrollerdb.txt
+  - /assets
 
 modules:
   - name: lsb-release-stub
