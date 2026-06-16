@@ -1,0 +1,19 @@
+Make GenerateSohOtr a dependency of the main soh target.
+
+Upstream decouples GenerateSohOtr from the default build so that SoH's CI
+can produce it once and download it across platform jobs. For flatpak we
+build everything in one pass, so we need ninja to build it as part of the
+regular target graph.
+
+--- a/soh/CMakeLists.txt
++++ b/soh/CMakeLists.txt
+@@ -618,6 +618,9 @@
+ add_dependencies(${PROJECT_NAME}
+     libultraship
+ )
++add_dependencies(${PROJECT_NAME}
++    GenerateSohOtr
++)
+ if(NOT CMAKE_SYSTEM_NAME MATCHES "NintendoSwitch|CafeOS")
+ add_dependencies(${PROJECT_NAME}
+     ZAPDLib

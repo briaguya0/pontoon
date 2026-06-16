@@ -4,31 +4,44 @@
   
   <name>Ship of Harkinian</name>
   <summary>Enough! My ship sails in the morning!</summary>
-  <developer_name>Harbour Masters</developer_name>
-  
+
+  <developer id="org.harbourmasters">
+    <name>Harbour Masters</name>
+  </developer>
+
   <metadata_license>CC0-1.0</metadata_license>
-  
+
   <supports>
     <control>pointing</control>
     <control>keyboard</control>
     <control>gamepad</control>
   </supports>
-  
+
   <description>
     <p>
-      Enough! My ship sails in the morning!
+      Ship of Harkinian is a native PC port of the N64 classic, featuring
+      enhanced graphics, mod support, and modern controls.
     </p>
+    <ul>
+      <li>4K, ultrawide, and multi-monitor rendering</li>
+      <li>Up to unlimited FPS with frame interpolation</li>
+      <li>Full support for Xbox, PlayStation, Switch Pro, and generic controllers</li>
+      <li>Dozens of quality-of-life improvements including graphics settings, HUD options, and enhanced camera</li>
+      <li>Runs on Windows, Linux (including Steam Deck), and macOS</li>
+    </ul>
   </description>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#7BA7BC</color>
+    <color type="primary" scheme_preference="dark">#1A3A52</color>
+  </branding>
+
+  <content_rating type="oars-1.1"/>
   
   <launchable type="desktop-id">org.harbourmasters.soh.desktop</launchable>
-  <screenshots>
-    <screenshot type="default">
-      <image>https://raw.githubusercontent.com/HarbourMasters/shipofharkinian.com/refs/heads/main/public/splash_poster.jpg</image>
-    </screenshot>
-  </screenshots>
 
   <releases>
-    <release version="8.0.6 (MacReady Golf)" date="2024-08-12"></release>
+    <release version="9.2.3 (Ackbar Delta)" date="2026-04-15"/>
   </releases>
 
   <url type="homepage">https://www.shipofharkinian.com/</url>

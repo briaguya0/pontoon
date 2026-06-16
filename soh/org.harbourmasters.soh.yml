@@ -1,70 +1,133 @@
 id: org.harbourmasters.soh
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 command: soh
-cleanup:
-  - /assets
-  - /bin/lsb-release
-  - /bin/lsb_release
-  - /include
-  - /gamecontrollerdb.txt
-  - /soh.elf
-  - /soh.otr
-  - /soh.sh
+
 finish-args:
-  - --socket=x11
+  - --socket=wayland
+  - --socket=fallback-x11
   - --device=dri
   - --device=input
   - --socket=pulseaudio
-  - --env=SHIP_HOME=.var/app/org.harbourmasters.soh/data # i think this should be able to just be /app/data but ZAPD doesn't like that
-  - --env=SHIP_BIN_DIR=/app/bin
+  - --share=network
+  - --filesystem=home:ro
+
+cleanup:
+  - /include
+  - /share/man
+  - /share/doc
+  - /share/pkgconfig
+  - /lib/pkgconfig
+  - /lib/cmake
+  - '*.a'
+  - '*.la'
+  - /bin/lsb_release
+
 modules:
-  - name: lsb_release
+  - name: lsb-release-stub
     buildsystem: simple
-    cleanup:
-      - /share/man
     build-commands:
-      - make
-      - make install INSTALL_ROOT=${FLATPAK_DEST}
+      - install -Dm755 lsb_release ${FLATPAK_DEST}/bin/lsb_release
     sources:
-      - type: git
-        url: https://github.com/thkukuk/lsb-release_os-release.git
-        tag: v3.3
-  - name: boost
-    buildsystem: simple
-    build-commands:
-      - ./bootstrap.sh
-      - ./b2 install --prefix="$FLATPAK_DEST"
+      - type: file
+        path: lsb_release
+
+  - name: libzip
+    buildsystem: cmake-ninja
+    builddir: true
     sources:
       - type: archive
-        url: https://archives.boost.io/release/1.81.0/source/boost_1_81_0.tar.gz
-        sha256: 205666dea9f6a7cfed87c7a6dfbeb52a2c1b9de55712c9c1a87735d7181452b6
+        url: https://github.com/nih-at/libzip/releases/download/v1.10.1/libzip-1.10.1.tar.gz
+        sha256: 9669ae5dfe3ac5b3897536dc8466a874c8cf2c0e3b1fdd08d75b273884299363
+
+  - name: nlohmann-json
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DJSON_BuildTests=OFF
+    sources:
+      - type: archive
+        url: https://github.com/nlohmann/json/archive/refs/tags/v3.12.0.tar.gz
+        sha256: 4b92eb0c06d10683f7447ce9406cb97cd4b453be18d7279320f7b2f025c10187
+
+  - name: tinyxml2
+    buildsystem: cmake-ninja
+    builddir: true
+    sources:
+      - type: archive
+        url: https://github.com/leethomason/tinyxml2/archive/refs/tags/10.0.0.tar.gz
+        sha256: 3bdf15128ba16686e69bce256cc468e76c7b94ff2c7f391cc5ec09e40bff3839
+
+  - name: spdlog
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DSPDLOG_BUILD_SHARED=ON
+      - -DSPDLOG_BUILD_EXAMPLE=OFF
+      - -DSPDLOG_BUILD_TESTS=OFF
+    sources:
+      - type: archive
+        url: https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
+        sha256: d8862955c6d74e5846b3f580b1605d2428b11d97a410d86e2fb13e857cd3a744
+
+  # sonic is an espeak-ng dep; pinning to the commit espeak-ng's FetchContent
+  # would otherwise pull. Adding it as a /app module means espeak-ng's
+  # find_library(SONIC_LIB sonic) succeeds and the FetchContent branch is skipped.
+  - name: sonic
+    buildsystem: simple
+    build-commands:
+      - make PREFIX=${FLATPAK_DEST}
+      - make install PREFIX=${FLATPAK_DEST}
+    sources:
+      - type: git
+        url: https://github.com/waywardgeek/sonic.git
+        commit: fbf75c3d6d846bad3bb3d456cbc5d07d9fd8c104
+
+  - name: espeak-ng
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DBUILD_SHARED_LIBS=ON
+      - -DENABLE_TESTS=OFF
+    sources:
+      - type: archive
+        url: https://github.com/espeak-ng/espeak-ng/archive/refs/tags/1.52.0.tar.gz
+        sha256: bb4338102ff3b49a81423da8a1a158b420124b055b60fa76cfb4b18677130a23
+
   - name: soh
     buildsystem: cmake-ninja
     builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_REMOTE_CONTROL=1
+      - -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+      - -DFETCHCONTENT_SOURCE_DIR_IMGUI=/run/build/soh/_fetchcontent/imgui
+      - -DFETCHCONTENT_SOURCE_DIR_STORMLIB=/run/build/soh/_fetchcontent/stormlib
+      - -DFETCHCONTENT_SOURCE_DIR_LIBGFXD=/run/build/soh/_fetchcontent/libgfxd
+      - -DFETCHCONTENT_SOURCE_DIR_THREADPOOL=/run/build/soh/_fetchcontent/threadpool
+      - -DFETCHCONTENT_SOURCE_DIR_PRISM=/run/build/soh/_fetchcontent/prism
+      - -DFETCHCONTENT_SOURCE_DIR_DR_LIBS=/run/build/soh/_fetchcontent/dr_libs
     post-install:
+      - install -Dm755 ../soh.sh ${FLATPAK_DEST}/bin/soh
+      - install -Dm755 ./soh/soh.elf ${FLATPAK_DEST}/lib/soh/soh.elf
+      - install -Dm644 ./soh/soh.o2r ${FLATPAK_DEST}/lib/soh/soh.o2r
+      - install -Dm644 ./gamecontrollerdb.txt ${FLATPAK_DEST}/lib/soh/gamecontrollerdb.txt
+      - cp -r ./soh/assets ${FLATPAK_DEST}/lib/soh/assets
+      - install -Dm644 ../org.harbourmasters.soh.metainfo.xml ${FLATPAK_DEST}/share/metainfo/org.harbourmasters.soh.metainfo.xml
+      - install -Dm644 ../org.harbourmasters.soh.desktop ${FLATPAK_DEST}/share/applications/org.harbourmasters.soh.desktop
       - install -Dm644 ../icons/org.harbourmasters.soh.16x16.png ${FLATPAK_DEST}/share/icons/hicolor/16x16/apps/org.harbourmasters.soh.png
       - install -Dm644 ../icons/org.harbourmasters.soh.32x32.png ${FLATPAK_DEST}/share/icons/hicolor/32x32/apps/org.harbourmasters.soh.png
       - install -Dm644 ../icons/org.harbourmasters.soh.64x64.png ${FLATPAK_DEST}/share/icons/hicolor/64x64/apps/org.harbourmasters.soh.png
       - install -Dm644 ../icons/org.harbourmasters.soh.128x128.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/org.harbourmasters.soh.png
       - install -Dm644 ../icons/org.harbourmasters.soh.256x256.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/org.harbourmasters.soh.png
       - install -Dm644 ../icons/org.harbourmasters.soh.512x512.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/org.harbourmasters.soh.png
-      - install -Dm644 ../org.harbourmasters.soh.metainfo.xml ${FLATPAK_DEST}/share/metainfo/org.harbourmasters.soh.metainfo.xml
-      - install -Dm644 ../org.harbourmasters.soh.desktop ${FLATPAK_DEST}/share/applications/org.harbourmasters.soh.desktop
-      - install -Dm755 ./soh/soh.elf ${FLATPAK_DEST}/bin/soh
-      - install -d "${FLATPAK_DEST}/data"
-      # these should be in /data not /bin but that requires code changes
-      - install -Dm644 ./soh/soh.otr ${FLATPAK_DEST}/bin/soh.otr
-      - install -Dm644 ./gamecontrollerdb.txt ${FLATPAK_DEST}/bin/gamecontrollerdb.txt
-      - install -d "${FLATPAK_DEST}/bin/assets"
-      - cp -r ./soh/assets/* "${FLATPAK_DEST}/bin/assets"
     sources:
       - type: git
         url: https://github.com/HarbourMasters/Shipwright.git
-        tag: 8.0.6
+        tag: '9.2.3'
+      - type: file
+        path: soh.sh
       - type: file
         path: org.harbourmasters.soh.metainfo.xml
       - type: file
@@ -72,18 +135,57 @@ modules:
       - type: dir
         path: icons
         dest: icons
+      # libultraship's FetchContent deps, pre-staged because flatpak-builder
+      # disables network during build. CMake reads these via FETCHCONTENT_SOURCE_DIR_*.
+      # Verify with: diff <(scripts/show-upstream-pins.py 9.2.3) <(scripts/show-manifest-pins.py soh/org.harbourmasters.soh.yml)
+      - type: git
+        url: https://github.com/ocornut/imgui.git
+        tag: v1.91.9b-docking
+        dest: _fetchcontent/imgui
+      - type: git
+        url: https://github.com/ladislav-zezula/StormLib.git
+        tag: v9.25
+        dest: _fetchcontent/stormlib
+      - type: git
+        url: https://github.com/glankk/libgfxd.git
+        commit: 008f73dca8ebc9151b205959b17773a19c5bd0da
+        dest: _fetchcontent/libgfxd
+      - type: git
+        url: https://github.com/bshoshany/thread-pool.git
+        tag: v4.1.0
+        dest: _fetchcontent/threadpool
+      - type: git
+        url: https://github.com/KiritoDv/prism-processor.git
+        commit: bbcbc7e3f890a5806b579361e7aa0336acd547e7
+        dest: _fetchcontent/prism
+      - type: git
+        url: https://github.com/mackron/dr_libs.git
+        commit: da35f9d6c7374a95353fd1df1d394d44ab66cf01
+        dest: _fetchcontent/dr_libs
+      # stb_image.h is fetched via raw file(DOWNLOAD), not FetchContent;
+      # we stage it here and a small patch swaps the URL for a local copy.
       - type: file
-        url: https://raw.githubusercontent.com/mdqinc/SDL_GameControllerDB/075c1549075ef89a397fd7e0663d21e53a2485fd/gamecontrollerdb.txt
-        sha512: fdeb98ca595350979ee6ddb7f1954db0c9f9adca2fd08b86ac01f84329021cadc036f592b91e605db6a241e9415ad9665b72e6f8e8ac335e301402a4a45d3a6b
+        url: https://github.com/nothings/stb/raw/0bc88af4de5fb022db643c2d8e549a0927749354/stb_image.h
+        sha256: c54b15a689e6a1f32c75e2ec23afa442e3e0e37e894b73c1974d08679b20dd5c
+        dest: _fetchcontent
       - type: patch
-        path: ensure_files_exist.patch
+        path: stb-image-skip-download.patch
+      # gamecontrollerdb.txt is similarly curl'd at configure time; same fix.
+      - type: file
+        url: https://raw.githubusercontent.com/mdqinc/SDL_GameControllerDB/998d5b08b5b33bdf3a63b2ef8f2ac4ccc664e2f6/gamecontrollerdb.txt
+        sha256: a34670ad1dafedef740c6c8ae8b8ff82a1cf1058d8f98eb8f1c123dee905ad19
+        dest: _fetchcontent
       - type: patch
-        path: appdir.patch
-        options:
-        - -d
-        - libultraship
-
-    modules:
-      - ../shared-modules/glew/glew.json
-      - ../shared-modules/glu/glu-9.json
-      
+        path: gamecontrollerdb-skip-download.patch
+      # GenerateSohOtr is decoupled from the default build upstream so SoH CI
+      # can produce it in a separate job. We build everything in one pass, so
+      # we wire it back into the regular dependency graph.
+      - type: patch
+        path: generate-sohotr-as-dep.patch
+      # libultraship's own ImGui and StormLib patches normally run via CMake's
+      # PATCH_COMMAND, but FETCHCONTENT_SOURCE_DIR skips that step. Apply them
+      # by hand against the pre-staged sources.
+      - type: shell
+        commands:
+          - (cd _fetchcontent/imgui && git apply ../../libultraship/cmake/dependencies/patches/imgui-fixes-and-config.patch)
+          - (cd _fetchcontent/stormlib && git apply ../../libultraship/cmake/dependencies/patches/stormlib-optimizations.patch)
