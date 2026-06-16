@@ -41,25 +41,18 @@
       </p>
     </section>
 
-    <section class="schemea">
-      <h2>Add Repository using Link</h2>
+    <section class="schemea" id="last-section">
+      <h2>Add Repository</h2>
       <ul class="content">
         <li>
           <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="16" height="16" viewBox="0 0 16 16">
             <path d="M1 4v8c0 1.1.9 2 2 2h10a2 2 0 0 0 2-2V4zm7 1.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm-2 3a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm4 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zm0 0"></path>
             <path d="M6 1 5 2v3h2V2h2v3h2V2l-1-1zm0 0"></path>
           </svg>
-          <a href="https://pontoon.briaguya.dev/index.flatpakrepo" class="pill">
-            Enable Repository
-          </a>
+          <code>
+            flatpak remote-add --if-not-exists pontoon https://pontoon.briaguya.dev/index.flatpakrepo
+          </code>
         </li>
       </ul>
-    </section>
-
-    <section class="schemeb" id="last-section">
-      <h2>Add Repository using CLI</h2>
-      <code>
-        flatpak remote-add --if-not-exists pontoon https://pontoon.briaguya.dev/index.flatpakrepo
-      </code>
     </section>
 </body></html>
