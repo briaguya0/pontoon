@@ -52,11 +52,22 @@ jobs:
           arch: ${{ matrix.arch }}
           gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
           upload-bundles: true
-          upload-pages-artifact: true # ${{ matrix.arch == 'aarch64' }}
-          upload-pages-includes: |
-            CNAME
-            default.css
-            index.html
+          # We assemble the Pages artifact ourselves so we can inject
+          # SuggestedRemoteName into the generated .flatpakrepo. Track upstream
+          # support at <flatter issue url> and revert when it lands.
+          upload-pages-artifact: false
+
+      - name: Assemble Pages artifact
+        run: |
+          # Inject SuggestedRemoteName so GUI tools (Warehouse etc.) use
+          # "pontoon" instead of the URL basename "index" when adding the remote.
+          sed -i '/^Url=/a SuggestedRemoteName=pontoon' repo/index.flatpakrepo
+          cp CNAME default.css index.html repo/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: repo
 
   deploy:
     name: Deploy
