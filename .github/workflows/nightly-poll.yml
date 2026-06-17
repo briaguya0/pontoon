@@ -1,0 +1,38 @@
+name: Nightly Poll
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get develop tip SHA
+        id: develop
+        run: echo "sha=$(gh api repos/HarbourMasters/Shipwright/commits/develop --jq .sha)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if changed
+        id: check
+        run: |
+          CURRENT="${{ steps.develop.outputs.sha }}"
+          STORED="${{ vars.LAST_NIGHTLY_SHA }}"
+          if [ "$CURRENT" != "$STORED" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "develop tip: $CURRENT (last built: ${STORED:-none})"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "no change since last build ($STORED)"
+          fi
+
+      - name: Trigger build
+        if: steps.check.outputs.changed == 'true'
+        run: gh workflow run flatter.yml --ref main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

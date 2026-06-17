@@ -44,6 +44,12 @@ jobs:
         run: |
           echo "pontoon.briaguya.dev" > CNAME
 
+      - name: Record develop SHA
+        id: develop
+        run: echo "sha=$(gh api repos/HarbourMasters/Shipwright/commits/develop --jq .sha)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Roll nightly gamecontrollerdb.txt
         run: scripts/roll-gamecontrollerdb.sh soh-nightly/org.harbourmasters.soh.Nightly.yml
 
@@ -61,6 +67,12 @@ jobs:
             CNAME
             default.css
             index.html
+
+      - name: Update last-built nightly SHA
+        if: success()
+        run: gh variable set LAST_NIGHTLY_SHA --body "${{ steps.develop.outputs.sha }}"
+        env:
+          GH_TOKEN: ${{ secrets.VERSION_TRACKER_PAT }}
 
   deploy:
     name: Deploy
