@@ -33,6 +33,6 @@ jobs:
 
       - name: Trigger build
         if: steps.check.outputs.changed == 'true'
-        run: gh workflow run flatter.yml --ref main
+        run: gh workflow run flatter.yml --ref main --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
