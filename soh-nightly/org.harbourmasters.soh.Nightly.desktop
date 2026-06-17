@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Ship of Harkinian (Nightly)
+Comment=Playtest build from the develop branch
+Icon=org.harbourmasters.soh.Nightly
+Exec=soh-nightly
+Categories=Game;AdventureGame
+Keywords=SoH;

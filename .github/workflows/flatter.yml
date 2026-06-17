@@ -44,11 +44,15 @@ jobs:
         run: |
           echo "pontoon.briaguya.dev" > CNAME
 
+      - name: Roll nightly gamecontrollerdb.txt
+        run: scripts/roll-gamecontrollerdb.sh soh-nightly/org.harbourmasters.soh.Nightly.yml
+
       - name: Build
         uses: andyholmes/flatter@ba9d3856bb0e59b43ba4684fe72128003f1b7706 # main HEAD as of 2026-06-16
         with:
           files: |
             soh/org.harbourmasters.soh.yml
+            soh-nightly/org.harbourmasters.soh.Nightly.yml
           arch: ${{ matrix.arch }}
           gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
           upload-bundles: true

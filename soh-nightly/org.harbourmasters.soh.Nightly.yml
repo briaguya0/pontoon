@@ -1,8 +1,8 @@
-id: org.harbourmasters.soh
+id: org.harbourmasters.soh.Nightly
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
-command: soh
+command: soh-nightly
 
 finish-args:
   - --socket=wayland
@@ -26,7 +26,7 @@ cleanup:
   - '*.la'
   - /bin/lsb_release
   # SoH's CMake INSTALL rules place these at /app root; our post-install
-  # puts the canonical copies under /app/lib/soh. Drop the duplicates.
+  # puts the canonical copies under /app/lib/soh-nightly. Drop the duplicates.
   - /soh.elf
   - /soh.o2r
   - /gamecontrollerdb.txt
@@ -116,36 +116,37 @@ modules:
       - -DFETCHCONTENT_SOURCE_DIR_THREADPOOL=/run/build/soh/_fetchcontent/threadpool
       - -DFETCHCONTENT_SOURCE_DIR_PRISM=/run/build/soh/_fetchcontent/prism
       - -DFETCHCONTENT_SOURCE_DIR_DR_LIBS=/run/build/soh/_fetchcontent/dr_libs
+      - -DFETCHCONTENT_SOURCE_DIR_MONOCYPHER=/run/build/soh/_fetchcontent/monocypher
     post-install:
-      - install -Dm755 ../soh.sh ${FLATPAK_DEST}/bin/soh
-      - install -Dm755 ./soh/soh.elf ${FLATPAK_DEST}/lib/soh/soh.elf
-      - install -Dm644 ./soh/soh.o2r ${FLATPAK_DEST}/lib/soh/soh.o2r
-      - install -Dm644 ./gamecontrollerdb.txt ${FLATPAK_DEST}/lib/soh/gamecontrollerdb.txt
-      - cp -r ./soh/assets ${FLATPAK_DEST}/lib/soh/assets
-      - install -Dm644 ../org.harbourmasters.soh.metainfo.xml ${FLATPAK_DEST}/share/metainfo/org.harbourmasters.soh.metainfo.xml
-      - install -Dm644 ../org.harbourmasters.soh.desktop ${FLATPAK_DEST}/share/applications/org.harbourmasters.soh.desktop
-      - install -Dm644 ../icons/org.harbourmasters.soh.16x16.png ${FLATPAK_DEST}/share/icons/hicolor/16x16/apps/org.harbourmasters.soh.png
-      - install -Dm644 ../icons/org.harbourmasters.soh.32x32.png ${FLATPAK_DEST}/share/icons/hicolor/32x32/apps/org.harbourmasters.soh.png
-      - install -Dm644 ../icons/org.harbourmasters.soh.64x64.png ${FLATPAK_DEST}/share/icons/hicolor/64x64/apps/org.harbourmasters.soh.png
-      - install -Dm644 ../icons/org.harbourmasters.soh.128x128.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/org.harbourmasters.soh.png
-      - install -Dm644 ../icons/org.harbourmasters.soh.256x256.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/org.harbourmasters.soh.png
-      - install -Dm644 ../icons/org.harbourmasters.soh.512x512.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/org.harbourmasters.soh.png
+      - install -Dm755 ../soh-nightly.sh ${FLATPAK_DEST}/bin/soh-nightly
+      - install -Dm755 ./soh/soh.elf ${FLATPAK_DEST}/lib/soh-nightly/soh.elf
+      - install -Dm644 ./soh/soh.o2r ${FLATPAK_DEST}/lib/soh-nightly/soh.o2r
+      - install -Dm644 ./gamecontrollerdb.txt ${FLATPAK_DEST}/lib/soh-nightly/gamecontrollerdb.txt
+      - cp -r ./soh/assets ${FLATPAK_DEST}/lib/soh-nightly/assets
+      - install -Dm644 ../org.harbourmasters.soh.Nightly.metainfo.xml ${FLATPAK_DEST}/share/metainfo/org.harbourmasters.soh.Nightly.metainfo.xml
+      - install -Dm644 ../org.harbourmasters.soh.Nightly.desktop ${FLATPAK_DEST}/share/applications/org.harbourmasters.soh.Nightly.desktop
+      - install -Dm644 ../icons/org.harbourmasters.soh.Nightly.16x16.png ${FLATPAK_DEST}/share/icons/hicolor/16x16/apps/org.harbourmasters.soh.Nightly.png
+      - install -Dm644 ../icons/org.harbourmasters.soh.Nightly.32x32.png ${FLATPAK_DEST}/share/icons/hicolor/32x32/apps/org.harbourmasters.soh.Nightly.png
+      - install -Dm644 ../icons/org.harbourmasters.soh.Nightly.64x64.png ${FLATPAK_DEST}/share/icons/hicolor/64x64/apps/org.harbourmasters.soh.Nightly.png
+      - install -Dm644 ../icons/org.harbourmasters.soh.Nightly.128x128.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/org.harbourmasters.soh.Nightly.png
+      - install -Dm644 ../icons/org.harbourmasters.soh.Nightly.256x256.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/org.harbourmasters.soh.Nightly.png
+      - install -Dm644 ../icons/org.harbourmasters.soh.Nightly.512x512.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/org.harbourmasters.soh.Nightly.png
     sources:
       - type: git
         url: https://github.com/HarbourMasters/Shipwright.git
-        tag: '9.2.3'
+        branch: develop
       - type: file
-        path: soh.sh
+        path: soh-nightly.sh
       - type: file
-        path: org.harbourmasters.soh.metainfo.xml
+        path: org.harbourmasters.soh.Nightly.metainfo.xml
       - type: file
-        path: org.harbourmasters.soh.desktop
+        path: org.harbourmasters.soh.Nightly.desktop
       - type: dir
         path: icons
         dest: icons
       # libultraship's FetchContent deps, pre-staged because flatpak-builder
       # disables network during build. CMake reads these via FETCHCONTENT_SOURCE_DIR_*.
-      # Verify with: diff <(scripts/show-soh-pins.py 9.2.3) <(scripts/show-manifest-pins.py soh/org.harbourmasters.soh.yml)
+      # Verify with: diff <(scripts/show-soh-pins.py develop) <(scripts/show-manifest-pins.py soh-nightly/org.harbourmasters.soh.Nightly.yml)
       - type: git
         url: https://github.com/ocornut/imgui.git
         tag: v1.91.9b-docking
@@ -164,12 +165,16 @@ modules:
         dest: _fetchcontent/threadpool
       - type: git
         url: https://github.com/KiritoDv/prism-processor.git
-        commit: bbcbc7e3f890a5806b579361e7aa0336acd547e7
+        commit: 1de054450e7b3c5f777d2e3dfcb228ad120c329d
         dest: _fetchcontent/prism
       - type: git
         url: https://github.com/mackron/dr_libs.git
         commit: da35f9d6c7374a95353fd1df1d394d44ab66cf01
         dest: _fetchcontent/dr_libs
+      - type: git
+        url: https://github.com/LoupVaillant/Monocypher.git
+        commit: 0d85f98c9d9b0227e42cf795cb527dff372b40a4
+        dest: _fetchcontent/monocypher
       # stb_image.h is fetched via raw file(DOWNLOAD), not FetchContent;
       # we stage it here and a small patch swaps the URL for a local copy.
       - type: file
@@ -179,9 +184,12 @@ modules:
       - type: patch
         path: stb-image-skip-download.patch
       # gamecontrollerdb.txt is similarly curl'd at configure time; same fix.
+      # SoH CMake fetches master HEAD at build time, so the sha256 below
+      # is stamped in by scripts/roll-gamecontrollerdb.sh before flatpak-builder
+      # runs (invoked from .github/workflows/flatter.yml).
       - type: file
-        url: https://raw.githubusercontent.com/mdqinc/SDL_GameControllerDB/6cfee3036b6ea6e4398496462afc3077ec884a91/gamecontrollerdb.txt
-        sha256: 1398b052f3f84842794cf75557eebc4896fc13c27430c9c9e2cab301830cd3f9
+        url: https://raw.githubusercontent.com/mdqinc/SDL_GameControllerDB/master/gamecontrollerdb.txt
+        sha256: PLACEHOLDER_GCDB_SHA256
         dest: _fetchcontent
       - type: patch
         path: gamecontrollerdb-skip-download.patch

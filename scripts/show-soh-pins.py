@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Print FetchContent / file(DOWNLOAD) pins that libultraship and SoH would
-fetch at the given SoH ref. Output format matches show-manifest-pins.py
+Print FetchContent / file(DOWNLOAD) pins from SoH CMake (libultraship +
+soh/CMakeLists.txt) at the given ref. Output format matches show-manifest-pins.py
 so the two can be compared via `diff(1)`.
 
 Usage:
-    scripts/show-upstream-pins.py <soh-ref>
-    scripts/show-upstream-pins.py 9.2.3
-    scripts/show-upstream-pins.py develop
+    scripts/show-soh-pins.py <soh-ref>
+    scripts/show-soh-pins.py 9.2.3
+    scripts/show-soh-pins.py develop
 """
 
 import re
@@ -16,6 +16,13 @@ import urllib.request as u
 
 API = "https://api.github.com"
 RAW = "https://raw.githubusercontent.com"
+
+# Names not worth drift-checking. Same set appears in show-manifest-pins.py
+# so both sides drop matching entries.
+SKIP = {
+    "tinycc",  # behind ENABLE_SCRIPTING (default OFF in libultraship); we don't ship it
+    "gamecontrollerdb.txt",  # SoH CMake curls master
+}
 
 ref = sys.argv[1] if len(sys.argv) > 1 else sys.exit(f"usage: {sys.argv[0]} <soh-ref>")
 
@@ -39,4 +46,6 @@ for url in (
         pins.append((m[1].rsplit("/", 1)[-1].lower(), "<file>", m[1]))
 
 for name, ref_, url in sorted(pins):
+    if name in SKIP:
+        continue
     print(f"{name:16} {ref_:48} {url}")
