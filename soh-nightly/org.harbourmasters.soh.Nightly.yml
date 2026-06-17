@@ -8,7 +8,9 @@ finish-args:
   - --socket=wayland
   - --socket=fallback-x11
   - --device=dri
-  - --device=input
+  # --device=all (not --device=input) because SDL3's libusb HIDAPI backend
+  # accesses raw USB devices; flatpak has no finer-grained USB knob.
+  - --device=all
   - --socket=pulseaudio
   - --share=network
   - --talk-name=org.freedesktop.portal.Desktop
@@ -102,6 +104,33 @@ modules:
       - type: archive
         url: https://github.com/espeak-ng/espeak-ng/archive/refs/tags/1.52.0.tar.gz
         sha256: bb4338102ff3b49a81423da8a1a158b420124b055b60fa76cfb4b18677130a23
+
+  # Replicates freedesktop-sdk 25.08's sdl3.bst exactly, plus SDL_HIDAPI_LIBUSB=ON
+  # so GameCube adapters and other libusb-only controllers work. SoH still calls
+  # SDL2; the runtime's sdl2-compat shim dlopens our SDL3 via /app/lib taking
+  # precedence over /usr/lib in the search order.
+  - name: sdl3
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DBUILD_SHARED_LIBS=ON
+      - -DSDL_TEST_LIBRARY=OFF
+      - -DSDL_TESTS=OFF
+      - -DSDL_EXAMPLES=OFF
+      - -DSDL_ALSA=OFF
+      - -DSDL_OSS=OFF
+      - -DSDL_SNDIO=OFF
+      - -DSDL_WAYLAND=ON
+      - -DSDL_WAYLAND_SHARED=OFF
+      - -DSDL_RPATH=OFF
+      - -DSDL_WAYLAND_LIBDECOR=ON
+      - -DSDL_PIPEWIRE_SHARED=ON
+      - -DSDL_HIDAPI_LIBUSB=ON
+    sources:
+      - type: git
+        url: https://github.com/libsdl-org/SDL.git
+        tag: release-3.2.30
+        commit: f5e5f6588921eed3d7d048ce43d9eb1ff0da0ffc
 
   - name: soh
     buildsystem: cmake-ninja
