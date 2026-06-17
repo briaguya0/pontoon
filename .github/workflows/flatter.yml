@@ -3,6 +3,10 @@ name: Flatter
 on:
   workflow_dispatch:
 
+concurrency:
+  group: flatter
+  cancel-in-progress: false
+
 jobs:
   flatter:
     name: Flatter

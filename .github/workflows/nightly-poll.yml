@@ -1,8 +1,6 @@
 name: Nightly Poll
 
 on:
-  schedule:
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -18,7 +16,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Skip if flatter is running
+        id: gate
+        run: |
+          RUNNING=$(gh api "repos/${{ github.repository }}/actions/workflows/flatter.yml/runs?status=in_progress" --jq '.total_count')
+          if [ "$RUNNING" -gt 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "flatter already in progress, skipping"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Check if changed
+        if: steps.gate.outputs.skip == 'false'
         id: check
         run: |
           CURRENT="${{ steps.develop.outputs.sha }}"
