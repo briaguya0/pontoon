@@ -8,8 +8,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  capture:
+    name: Capture develop SHA
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.develop.outputs.sha }}
+    steps:
+      - name: Record develop SHA
+        id: develop
+        run: echo "sha=$(gh api repos/HarbourMasters/Shipwright/commits/develop --jq .sha)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   flatter:
     name: Flatter
+    needs: capture
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/andyholmes/flatter/freedesktop:25.08
@@ -48,12 +61,6 @@ jobs:
         run: |
           echo "pontoon.briaguya.dev" > CNAME
 
-      - name: Record develop SHA
-        id: develop
-        run: echo "sha=$(gh api repos/HarbourMasters/Shipwright/commits/develop --jq .sha)" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Roll nightly gamecontrollerdb.txt
         run: scripts/roll-gamecontrollerdb.sh soh-nightly/org.harbourmasters.soh.Nightly.yml
 
@@ -72,9 +79,12 @@ jobs:
             default.css
             index.html
 
-      - name: Update last-built nightly SHA
-        if: success()
-        run: gh variable set LAST_NIGHTLY_SHA --body "${{ steps.develop.outputs.sha }}"
+  update-var:
+    name: Update last-built nightly SHA
+    runs-on: ubuntu-latest
+    needs: [capture, flatter]
+    steps:
+      - run: gh variable set LAST_NIGHTLY_SHA --body "${{ needs.capture.outputs.sha }}" --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.VERSION_TRACKER_PAT }}
 
